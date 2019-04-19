@@ -6,6 +6,9 @@
 *.tfstate
 *.tfstate.*
 
+# .tfvars files
+*.tfvars
+
 # temp files:
 *~
 *.swp
