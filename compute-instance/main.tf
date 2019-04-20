@@ -26,7 +26,7 @@ module "gce" {
   instance_count     = "${var.instance_count}"
   static_external_ip = "${var.static_external_ip}"
   subnetwork         = "${data.terraform_remote_state.vpc.subnets_self_links["${var.subnet_num}"]}"
-  instance_type      = "f1-micro"
+  instance_type      = "${var.instance_type}"
   tags               = ["${var.tags}"]
   image              = "${var.image}"
   image_family       = "${var.image_family}"
