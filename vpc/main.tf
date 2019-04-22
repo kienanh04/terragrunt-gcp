@@ -46,3 +46,35 @@ module "vpc" {
     "${local.network_name}-database" = []
   }
 }
+
+////// DNS Zones:
+resource "google_dns_managed_zone" "private" {
+  count       = "${var.dns_private ? 1 : 0}" 
+  name        = "${lower(var.project_name)}-private-zone"
+  dns_name    = "${var.domain_local}"
+  description = "${var.project_name} Private Zone"
+  labels = {
+    env  = "${var.project_env}"
+  }
+
+  visibility  = "private"
+
+  private_visibility_config {
+    networks {
+      network_url =  "${module.vpc.network_self_link}"
+    }
+  }
+}
+
+resource "google_dns_managed_zone" "public" {
+  count       = "${var.dns_public ? 1 : 0}" 
+  name        = "${lower(var.project_name)}-public-zone"
+  dns_name    = "${var.domain_name}"
+  description = "${var.project_name} Public Zone"
+  labels = {
+    env  = "${var.project_env}"
+  }
+
+  visibility  = "public"
+
+}
