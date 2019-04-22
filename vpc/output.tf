@@ -24,11 +24,11 @@ output "subnets_self_links" {
 }
 
 output "dns_private_name" {
-  value       = "${google_dns_managed_zone.private.name}"
+  value       = "${element(google_dns_managed_zone.private.*.name,0)}"
   description = "The name of private dns zone"
 }
 
 output "dns_public_name" {
-  value       = "${google_dns_managed_zone.public.name}"
+  value       = "${element(google_dns_managed_zone.public.*.name,0)}"
   description = "The name of public dns zone"
 }
