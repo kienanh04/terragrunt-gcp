@@ -20,3 +20,5 @@ variable "image_project" { default = "centos-cloud" }
 variable "disk_size" { default = "10" }
 variable "ssh_pub_file" { default = "../sshkeys/id_rsa.pub" }
 variable "ssh_user" { default = "centos" }
+
+variable "dns_ttl" { default = "300" }

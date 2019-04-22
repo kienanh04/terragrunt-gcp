@@ -40,3 +40,14 @@ module "gce" {
   ssh_pub_file       = "${var.ssh_pub_file}"
   ssh_user           = "${var.ssh_user}"
 }
+
+resource "google_dns_record_set" "private" {
+  count        = "${var.instance_count}"
+  name         = "${var.name}-${format("%02d", count.index + 1)}.${data.terraform_remote_state.vpc.domain_local}"
+  type         = "A"
+  ttl          = "${var.dns_ttl}"
+
+  managed_zone = "${data.terraform_remote_state.vpc.dns_private_dns}"
+
+  rrdatas = ["${element(module.gce.*.private_ips,count.index)}"]
+}
