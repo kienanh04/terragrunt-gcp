@@ -54,7 +54,7 @@ resource "google_dns_managed_zone" "private" {
   dns_name    = "${var.domain_local}"
   description = "${var.project_name} Private Zone"
   labels = {
-    env  = "${var.project_env}"
+    env  = "${lower(var.project_env)}"
   }
 
   visibility  = "private"
@@ -72,7 +72,7 @@ resource "google_dns_managed_zone" "public" {
   dns_name    = "${var.domain_name}"
   description = "${var.project_name} Public Zone"
   labels = {
-    env  = "${var.project_env}"
+    env  = "${lower(var.project_env)}"
   }
 
   visibility  = "public"
