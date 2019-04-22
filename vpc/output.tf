@@ -32,3 +32,13 @@ output "dns_public_name" {
   value       = "${element(google_dns_managed_zone.public.*.name,0)}"
   description = "The name of public dns zone"
 }
+
+output "domain_local" {
+  value       = "${var.domain_local}"
+  description = "The private domain name"
+}
+
+output "domain_name" {
+  value       = "${var.domain_name}"
+  description = "The public domain name"
+}
