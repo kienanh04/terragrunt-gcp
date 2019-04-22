@@ -34,11 +34,11 @@ output "dns_public_name" {
 }
 
 output "domain_local" {
-  value       = "${var.domain_local}"
+  value       = "${var.domain_local}."
   description = "The private domain name"
 }
 
 output "domain_name" {
-  value       = "${var.domain_name}"
+  value       = "${var.domain_name}."
   description = "The public domain name"
 }
