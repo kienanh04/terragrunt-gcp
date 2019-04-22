@@ -51,7 +51,7 @@ module "vpc" {
 resource "google_dns_managed_zone" "private" {
   count       = "${var.dns_private ? 1 : 0}" 
   name        = "${lower(var.project_name)}-private-zone"
-  dns_name    = "${var.domain_local}"
+  dns_name    = "${var.domain_local}."
   description = "${var.project_name} Private Zone"
   labels = {
     env  = "${lower(var.project_env)}"
@@ -69,7 +69,7 @@ resource "google_dns_managed_zone" "private" {
 resource "google_dns_managed_zone" "public" {
   count       = "${var.dns_public ? 1 : 0}" 
   name        = "${lower(var.project_name)}-public-zone"
-  dns_name    = "${var.domain_name}"
+  dns_name    = "${var.domain_name}."
   description = "${var.project_name} Public Zone"
   labels = {
     env  = "${lower(var.project_env)}"
