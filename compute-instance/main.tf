@@ -47,7 +47,7 @@ resource "google_dns_record_set" "private" {
   type         = "A"
   ttl          = "${var.dns_ttl}"
 
-  managed_zone = "${data.terraform_remote_state.vpc.dns_private_dns}"
+  managed_zone = "${data.terraform_remote_state.vpc.domain_local}"
 
   rrdatas = ["${element(module.gce.private_ips,count.index)}"]
 }
