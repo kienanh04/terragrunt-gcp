@@ -22,14 +22,16 @@ data "terraform_remote_state" "vpc" {
 
 locals {
   ip_configuration = [{
-    ipv4_enabled    = "false"
-    private_network = "${data.terraform_remote_state.vpc.subnets_self_links["${var.subnet_num}"]}"
+    authorized_networks = [{
+      value = "0.0.0.0/0"
+    }]
+    ipv4_enabled = true
   }]
 
   database_flags = [
-    { 
+    {
       name  = "default_time_zone"
-      value = "${var.time_zone}" 
+      value = "+09:00"
     },
     { 
       name  = "slow_query_log"
@@ -54,6 +56,7 @@ module "mysql-cluster" {
   name             = "${var.name}"
   database_version = "${var.database_version}"
   project_id       = "${var.project_id}"
+  region           = "${var.region}"
   zone             = "${var.zone}"
 
   ## DB setting:
@@ -88,7 +91,7 @@ module "mysql-cluster" {
   read_replica_database_flags                  = ["${local.database_flags}"]
   read_replica_configuration                   = "${var.read_replica_configuration}"
   read_replica_activation_policy               = "${var.read_replica_activation_policy}"
-  read_replica_ip_configuration                = ["${local.ip_configuration}"]
+  read_replica_ip_configuration                = "${local.ip_configuration}"
   read_replica_maintenance_window_day          = "${var.read_replica_maintenance_window_day}"
   read_replica_maintenance_window_hour         = "${var.read_replica_maintenance_window_hour}"
   read_replica_maintenance_window_update_track = "${var.read_replica_maintenance_window_update_track}"

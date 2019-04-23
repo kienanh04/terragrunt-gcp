@@ -37,7 +37,7 @@ variable "database_version" {
 // required
 variable "region" {
   description = "The region of the Cloud SQL resources"
-  default     = "us-central1"
+  default     = "us-west1"
 }
 
 // Master

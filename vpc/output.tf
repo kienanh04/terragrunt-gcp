@@ -3,6 +3,11 @@ output "name" {
   description = "The name of the VPC being created"
 }
 
+output "self_link" {
+  value       = "${module.vpc.network_self_link}"
+  description = "The URI of the VPC being created"
+}
+
 output "subnets_names" {
   value       = "${module.vpc.subnets_names}"
   description = "The names of the subnets being created"
