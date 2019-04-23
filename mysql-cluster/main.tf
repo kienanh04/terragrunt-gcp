@@ -89,7 +89,6 @@ module "mysql-cluster" {
   read_replica_configuration                   = "${var.read_replica_configuration}"
   read_replica_activation_policy               = "${var.read_replica_activation_policy}"
   read_replica_ip_configuration                = "${local.ip_configuration}"
-  read_replica_backup_configuration            = "${local.backup_configuration}"
   read_replica_maintenance_window_day          = "${var.read_replica_maintenance_window_day}"
   read_replica_maintenance_window_hour         = "${var.read_replica_maintenance_window_hour}"
   read_replica_maintenance_window_update_track = "${var.read_replica_maintenance_window_update_track}"
