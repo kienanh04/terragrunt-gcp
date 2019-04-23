@@ -21,6 +21,13 @@ variable "subnet_num" {
   default     = "2"
 }
 
+// Terraform remote state for vpc:
+variable "terraform_remote_state_bucket" { default = "" }
+variable "terraform_remote_state_key" { default = "" }
+variable "terraform_remote_state_region" { default = "" }
+variable "terraform_remote_state_profile" { default = "" }
+variable "terraform_remote_state_arn" { default = "" }
+
 // required
 variable "database_version" {
   description = "The database version to use"
