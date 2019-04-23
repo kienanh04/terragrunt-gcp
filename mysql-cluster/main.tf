@@ -72,7 +72,7 @@ module "mysql-cluster" {
   disk_type                       = "${var.disk_type}"
   database_flags                  = ["${local.database_flags}"]
   activation_policy               = "${var.activation_policy}"
-  ip_configuration                = ["${local.ip_configuration}"]
+  ip_configuration                = "${local.ip_configuration}"
   backup_configuration            = "${local.backup_configuration}"
   maintenance_window_day          = "${var.maintenance_window_day}"
   maintenance_window_hour         = "${var.maintenance_window_hour}"
@@ -103,7 +103,7 @@ module "mysql-cluster" {
   failover_replica_configuration                   = "${var.failover_replica_configuration}"
   failover_replica_disk_size                       = "${var.failover_replica_disk_size}"
   failover_replica_disk_type                       = "${var.failover_replica_disk_type}"
-  failover_replica_ip_configuration                = ["${local.ip_configuration}"]
+  failover_replica_ip_configuration                = "${local.ip_configuration}"
   failover_replica_maintenance_window_day          = "${var.maintenance_window_day}"
   failover_replica_maintenance_window_hour         = "${var.maintenance_window_hour}"
   failover_replica_maintenance_window_update_track = "${var.maintenance_window_update_track}"
