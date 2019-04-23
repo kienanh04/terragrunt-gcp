@@ -21,10 +21,10 @@ data "terraform_remote_state" "vpc" {
 }
 
 locals {
-  ip_configuration = {
+  ip_configuration = [{
     ipv4_enabled    = "false"
     private_network = "${data.terraform_remote_state.vpc.subnets_self_links["${var.subnet_num}"]}"
-  }
+  }]
 
   database_flags = [
     { 
