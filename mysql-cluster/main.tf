@@ -21,17 +21,14 @@ data "terraform_remote_state" "vpc" {
 }
 
 locals {
-  ip_configuration = [{
-    authorized_networks = [{
-      value = "0.0.0.0/0"
-    }]
-    ipv4_enabled = true
-  }]
-
+  ip_config_key = "${list("private_network")}"
+  //ip_config_value = "${list("${data.terraform_remote_state.vpc.self_link}")}"
+  ip_config_value = "${list("projects/learning-gcp-20190402/global/networks/prototype-production")}"
+  ip_configuration = "${list(zipmap(local.ip_config_key,local.ip_config_value))}"
   database_flags = [
     {
       name  = "default_time_zone"
-      value = "+09:00"
+      value = "${var.time_zone}"
     },
     { 
       name  = "slow_query_log"
@@ -75,7 +72,11 @@ module "mysql-cluster" {
   disk_type                       = "${var.disk_type}"
   database_flags                  = ["${local.database_flags}"]
   activation_policy               = "${var.activation_policy}"
-  ip_configuration                = "${local.ip_configuration}"
+  //ip_configuration                = "${local.ip_configuration}"
+  //ip_configuration                = "${map("private_network","${data.terraform_remote_state.vpc.self_link}")}"
+  //ip_configuration                = "${list(zipmap(local.ip_config_key,local.ip_config_value))}"
+  //ip_configuration                = "${zipmap(local.ip_config_key,local.ip_config_value)}"
+  ip_configuration                = "${zipmap(list("private_network"),"${list("${data.terraform_remote_state.vpc.self_link}")}")}"
   backup_configuration            = "${local.backup_configuration}"
   maintenance_window_day          = "${var.maintenance_window_day}"
   maintenance_window_hour         = "${var.maintenance_window_hour}"
