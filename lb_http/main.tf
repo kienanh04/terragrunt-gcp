@@ -22,6 +22,10 @@ data "terraform_remote_state" "gce" {
   }
 }
 
+locals {
+  firewall_network = "${lower(var.project_name)}-${lower(var.project_env_short)}"
+}
+
 data "null_data_source" "instance_lists_01" {
   count  = "${length(data.terraform_remote_state.gce.self_links)}"
   inputs = {
@@ -95,7 +99,7 @@ module "lb-http" {
   version           = "1.0.10"
   name              = "${var.name}-lb"
   target_tags       = ["${var.target_tags}"]
-  firewall_networks = ["${ var.firewall_networks == "default" ? "${lower(var.project_name)}-${lower(var.project_env_short)}" : "${var.firewall_networks}" }"]
+  firewall_networks = "${compact(concat(var.firewall_networks,list("${local.firewall_network}"))}"
   backends          = {
     "0" = "${data.null_data_source.backends.*.inputs}"
   }

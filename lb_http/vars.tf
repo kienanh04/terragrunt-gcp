@@ -18,4 +18,4 @@ variable "https_port" { default = "443" }
 variable "https_port_name" { default = "https" }
 
 variable "target_tags" { default = ["web"] }
-variable "firewall_networks" { default = ["default"] }
+variable "firewall_networks" { default = [] }
