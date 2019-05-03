@@ -99,7 +99,7 @@ module "lb-http" {
   version           = "1.0.10"
   name              = "${var.name}-lb"
   target_tags       = ["${var.target_tags}"]
-  firewall_networks = "${compact(concat(var.firewall_networks,list("${local.firewall_network}"))}"
+  firewall_networks = "${compact(concat(var.firewall_networks,list("${local.firewall_network}")))}"
   backends          = {
     "0" = "${data.null_data_source.backends.*.inputs}"
   }
