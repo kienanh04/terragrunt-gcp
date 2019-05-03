@@ -8,7 +8,7 @@ terraform {
 }
 
 locals {
-  network_name = "${lower(var.project_name)}-${lower(var.project_env)}"
+  network_name = "${lower(var.project_name)}-${lower(var.project_short_env)}"
 }
 
 data "google_compute_zones" "available" {}
@@ -23,18 +23,12 @@ module "vpc" {
   subnets = [
     {
       subnet_name   = "${local.network_name}-public"
-      subnet_ip     = "${cidrsubnet("${var.vpc_cidr}", 2, 0)}"
+      subnet_ip     = "${cidrsubnet("${var.vpc_cidr}", 1, 0)}"
       subnet_region = "${var.region}"
     },
     {
       subnet_name           = "${local.network_name}-private"
-      subnet_ip             = "${cidrsubnet("${var.vpc_cidr}", 2, 1)}"
-      subnet_region         = "${var.region}"
-      subnet_private_access = "true"
-    },
-    {
-      subnet_name           = "${local.network_name}-database"
-      subnet_ip             = "${cidrsubnet("${var.vpc_cidr}", 2, 2)}"
+      subnet_ip             = "${cidrsubnet("${var.vpc_cidr}", 1, 1)}"
       subnet_region         = "${var.region}"
       subnet_private_access = "true"
     },
@@ -43,7 +37,6 @@ module "vpc" {
   secondary_ranges = {
     "${local.network_name}-public" = []
     "${local.network_name}-private" = []
-    "${local.network_name}-database" = []
   }
 }
 
