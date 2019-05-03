@@ -1,4 +1,4 @@
-provider "google" {
+provider "google-beta" {
   project     = "${var.project_id}"
   region      = "${var.region}"
 }
@@ -21,10 +21,6 @@ data "terraform_remote_state" "vpc" {
 }
 
 locals {
-  ip_config_key = "${list("private_network")}"
-  //ip_config_value = "${list("${data.terraform_remote_state.vpc.self_link}")}"
-  ip_config_value = "${list("projects/learning-gcp-20190402/global/networks/prototype-production")}"
-  ip_configuration = "${list(zipmap(local.ip_config_key,local.ip_config_value))}"
   database_flags = [
     {
       name  = "default_time_zone"
@@ -41,75 +37,121 @@ locals {
   ]
 
   backup_configuration = {
-    enabled = true
-    start_time = "${var.backup_start_time}"
+    binary_log_enabled = true
+    enabled            = true
+    start_time         = "${var.backup_start_time}"
+  }
+
+}
+
+resource "google_compute_global_address" "cloud_sql" {
+  provider      = "google-beta"
+  name          = "${var.cloud_sql_ip_name}"
+  purpose       = "VPC_PEERING"
+  address_type  = "INTERNAL"
+  address       = "${var.cloud_sql_ip}"
+  prefix_length = "${var.cloud_sql_prefix}"
+  network       = "${data.terraform_remote_state.vpc.self_link}"
+}
+
+resource "google_service_networking_connection" "private_connect" {
+  provider      = "google-beta"
+  network       = "${data.terraform_remote_state.vpc.self_link}"
+  service       = "servicenetworking.googleapis.com"
+  reserved_peering_ranges = ["${google_compute_global_address.cloud_sql.name}"]
+}
+
+resource "google_sql_database_instance" "default" {
+  provider         = "google-beta"
+  project          = "${var.project_id}"
+  name             = "${var.name == "" ? "${lower(var.project_name)}-${lower(var.project_short_env)}" : "${var.name}" }"
+  database_version = "${var.database_version}"
+  region           = "${var.region}"
+  depends_on       = ["google_service_networking_connection.private_connect"]
+
+  settings {
+    tier                        = "${var.tier}"
+    activation_policy           = "${var.activation_policy}"
+    authorized_gae_applications = ["${var.authorized_gae_applications}"]
+    backup_configuration        = ["${local.backup_configuration}"]
+    ip_configuration            = {
+      ipv4_enabled     = "false"
+      private_network  = "${data.terraform_remote_state.vpc.self_link}"
+    } 
+
+    disk_autoresize = "${var.disk_autoresize}"
+
+    disk_size      = "${var.disk_size}"
+    disk_type      = "${var.disk_type}"
+    pricing_plan   = "${var.pricing_plan}"
+    user_labels    = "${var.user_labels}"
+    database_flags = ["${concat(var.database_flags,local.database_flags)}"]
+
+    location_preference {
+      zone = "${var.region}-${var.zone}"
+    }
+
+    maintenance_window {
+      day          = "${var.maintenance_window_day}"
+      hour         = "${var.maintenance_window_hour}"
+      update_track = "${var.maintenance_window_update_track}"
+    }
+  }
+
+  lifecycle {
+    ignore_changes = ["disk_size"]
+  }
+
+  timeouts {
+    create = "${var.create_timeout}"
+    update = "${var.update_timeout}"
+    delete = "${var.delete_timeout}"
   }
 }
 
-module "mysql-cluster" {
-  source  = "GoogleCloudPlatform/sql-db/google//modules/mysql"
-  version = "1.1.1"
+resource "google_sql_database" "default" {
+  name       = "${var.db_name == "default" ? "${lower(var.project_name)}_${lower(var.project_short_env)}" : "${var.db_name}"}"
+  project    = "${var.project_id}"
+  instance   = "${google_sql_database_instance.default.name}"
+  charset    = "${var.db_charset}"
+  collation  = "${var.db_collation}"
+  depends_on = ["google_sql_database_instance.default"]
+}
 
-  name             = "${var.name}"
-  database_version = "${var.database_version}"
-  project_id       = "${var.project_id}"
-  region           = "${var.region}"
-  zone             = "${var.zone}"
+resource "google_sql_database" "additional_databases" {
+  count      = "${length(var.additional_databases)}"
+  project    = "${var.project_id}"
+  name       = "${lookup(var.additional_databases[count.index], "name")}"
+  charset    = "${lookup(var.additional_databases[count.index], "charset", "")}"
+  collation  = "${lookup(var.additional_databases[count.index], "collation", "")}"
+  instance   = "${google_sql_database_instance.default.name}"
+  depends_on = ["google_sql_database_instance.default"]
+}
 
-  ## DB setting:
-  user_name                       = "${var.user_name}"
-  user_password                   = "${var.user_password}"
-  user_host                       = "${var.user_host}"
-  db_name                         = "${var.db_name}"
-  db_charset                      = "${var.db_charset}"
-  db_collation                    = "${var.db_collation}"
-  authorized_gae_applications     = ["${var.authorized_gae_applications}"]
+resource "random_id" "user-password" {
+  keepers = {
+    name = "${google_sql_database_instance.default.name}"
+  }
 
-  ## Primary instance:
-  tier                            = "${var.tier}"
-  pricing_plan                    = "${var.pricing_plan}"
-  disk_size                       = "${var.disk_size}"
-  disk_type                       = "${var.disk_type}"
-  database_flags                  = ["${local.database_flags}"]
-  activation_policy               = "${var.activation_policy}"
-  //ip_configuration                = "${local.ip_configuration}"
-  //ip_configuration                = "${map("private_network","${data.terraform_remote_state.vpc.self_link}")}"
-  //ip_configuration                = "${list(zipmap(local.ip_config_key,local.ip_config_value))}"
-  //ip_configuration                = "${zipmap(local.ip_config_key,local.ip_config_value)}"
-  ip_configuration                = "${zipmap(list("private_network"),"${list("${data.terraform_remote_state.vpc.self_link}")}")}"
-  backup_configuration            = "${local.backup_configuration}"
-  maintenance_window_day          = "${var.maintenance_window_day}"
-  maintenance_window_hour         = "${var.maintenance_window_hour}"
-  maintenance_window_update_track = "${var.maintenance_window_update_track}"
-  
-  ## Read Replicas:
-  read_replica_size                            = "${var.read_replica_size}"
-  read_replica_tier                            = "${var.read_replica_tier}"
-  read_replica_pricing_plan                    = "${var.read_replica_pricing_plan}"
-  read_replica_replication_type                = "${var.read_replica_replication_type}"
-  read_replica_disk_size                       = "${var.read_replica_disk_size}"
-  read_replica_disk_type                       = "${var.read_replica_disk_type}"
-  read_replica_database_flags                  = ["${local.database_flags}"]
-  read_replica_configuration                   = "${var.read_replica_configuration}"
-  read_replica_activation_policy               = "${var.read_replica_activation_policy}"
-  read_replica_ip_configuration                = "${local.ip_configuration}"
-  read_replica_maintenance_window_day          = "${var.read_replica_maintenance_window_day}"
-  read_replica_maintenance_window_hour         = "${var.read_replica_maintenance_window_hour}"
-  read_replica_maintenance_window_update_track = "${var.read_replica_maintenance_window_update_track}"
+  byte_length = 8
+  depends_on  = ["google_sql_database_instance.default"]
+}
 
-  ## Failover Replica:
-  failover_replica                                 = "${var.failover_replica}"
-  failover_replica_pricing_plan                    = "${var.failover_replica_pricing_plan}"
-  failover_replica_replication_type                = "${var.failover_replica_replication_type}"
-  failover_replica_tier                            = "${var.failover_replica_tier}"
-  failover_replica_zone                            = "${var.failover_replica_zone}"
-  failover_replica_activation_policy               = "${var.activation_policy}"
-  failover_replica_configuration                   = "${var.failover_replica_configuration}"
-  failover_replica_disk_size                       = "${var.failover_replica_disk_size}"
-  failover_replica_disk_type                       = "${var.failover_replica_disk_type}"
-  failover_replica_ip_configuration                = "${local.ip_configuration}"
-  failover_replica_maintenance_window_day          = "${var.maintenance_window_day}"
-  failover_replica_maintenance_window_hour         = "${var.maintenance_window_hour}"
-  failover_replica_maintenance_window_update_track = "${var.maintenance_window_update_track}"
-  
+resource "google_sql_user" "default" {
+  name       = "${var.user_name == "default" ? "${lower(var.project_short_env)}_usr" : "${var.user_name}"}"
+  project    = "${var.project_id}"
+  instance   = "${google_sql_database_instance.default.name}"
+  host       = "${var.user_host}"
+  password   = "${var.user_password == "" ? random_id.user-password.hex : var.user_password}"
+  depends_on = ["google_sql_database_instance.default"]
+}
+
+resource "google_sql_user" "additional_users" {
+  count      = "${length(var.additional_users)}"
+  project    = "${var.project_id}"
+  name       = "${lookup(var.additional_users[count.index], "name")}"
+  password   = "${lookup(var.additional_users[count.index], "password", random_id.user-password.hex)}"
+  host       = "${lookup(var.additional_users[count.index], "host", var.user_host)}"
+  instance   = "${google_sql_database_instance.default.name}"
+  depends_on = ["google_sql_database_instance.default"]
 }

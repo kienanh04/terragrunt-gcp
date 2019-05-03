@@ -2,8 +2,19 @@ variable "project_id" {
   description = "The project ID to manage the Cloud SQL resources"
 }
 
-variable "name" {
-  description = "The name of the Cloud SQL resources"
+variable "project_name" {
+  description = "The project name to manage the Cloud SQL resources"
+  default     = "MySQL-Cluster"
+}
+
+variable "project_env" {
+  description = "The project ENV of the Cloud SQL resources"
+  default     = "production"
+}
+
+variable "project_short_env" {
+  description = "The short ENV of the Cloud SQL resources"
+  default     = "prd"
 }
 
 variable "time_zone" {
@@ -11,14 +22,9 @@ variable "time_zone" {
   default     = "+09:00"
 }
 
-variable "backup_start_time" {
-  description = "The Backup Time of the Cloud SQL resources"
-  default     = "02:00"
-}
-
-variable "subnet_num" {
-  description = "The subnet number of database subnet"
-  default     = "2"
+variable "region" {
+  description = "The region of the Cloud SQL resources"
+  default     = "us-west1"
 }
 
 // Terraform remote state for vpc:
@@ -28,22 +34,31 @@ variable "terraform_remote_state_region" { default = "" }
 variable "terraform_remote_state_profile" { default = "" }
 variable "terraform_remote_state_arn" { default = "" }
 
-// required
-variable "database_version" {
-  description = "The database version to use"
-  default     = "MYSQL_5_6"
+// Private connection:
+variable "cloud_sql_ip_name" {
+  description = "The IP name of the Cloud SQL resources"
+  default     = "cloud-sql-ip"
 }
 
-// required
-variable "region" {
-  description = "The region of the Cloud SQL resources"
-  default     = "us-west1"
+variable "cloud_sql_ip" {
+  description = "The IP of the Cloud SQL resources"
+  default     = "192.168.0.0"
+}
+
+variable "cloud_sql_prefix" {
+  description = "The IP prefix of the Cloud SQL resources"
+  default     = "24"
 }
 
 // Master
+variable "name" {
+  description = "The name of the Cloud SQL resources"
+  default     = ""
+}
+
 variable "tier" {
   description = "The tier for the master instance."
-  default     = "db-n1-standard-1"
+  default     = "db-f1-micro"
 }
 
 variable "zone" {
@@ -58,6 +73,11 @@ variable "activation_policy" {
 variable "authorized_gae_applications" {
   description = "The list of authorized App Engine project names"
   default     = []
+}
+
+variable "disk_autoresize" {
+  description = "Configuration to increase storage size"
+  default     = true
 }
 
 variable "disk_size" {
@@ -95,6 +115,11 @@ variable "database_flags" {
   default     = []
 }
 
+variable "user_labels" {
+  default     = {}
+  description = "The key/value labels for the master instances."
+}
+
 variable "backup_configuration" {
   default     = {}
   description = "The backup configuration block of the Cloud SQL resources"
@@ -103,6 +128,16 @@ variable "backup_configuration" {
 variable "ip_configuration" {
   description = "The ip configuration for the master instance."
   default     = {}
+}
+
+variable "database_version" {
+  description = "The database version to use"
+  default     = "MYSQL_5_6"
+}
+
+variable "backup_start_time" {
+  description = "The Backup Time of the Cloud SQL resources"
+  default     = "02:00"
 }
 
 // Read Replicas
@@ -119,7 +154,7 @@ variable "read_replica_size" {
 
 variable "read_replica_tier" {
   description = "The tier for the read replica instances."
-  default     = ""
+  default     = "db-f1-micro"
 }
 
 variable "read_replica_zones" {
@@ -134,6 +169,11 @@ variable "read_replica_activation_policy" {
 
 variable "read_replica_crash_safe_replication" {
   description = "The crash safe replication is to indicates when crash-safe replication flags are enabled."
+  default     = true
+}
+
+variable "read_replica_disk_autoresize" {
+  description = "Configuration to increase storage size for the read replica instances."
   default     = true
 }
 
@@ -162,6 +202,11 @@ variable "read_replica_database_flags" {
   default     = []
 }
 
+variable "read_replica_user_labels" {
+  default     = {}
+  description = "The key/value labels for the read replica instances."
+}
+
 variable "read_replica_maintenance_window_day" {
   description = "The day of week (1-7) for the read replica instances maintenance."
   default     = 1
@@ -175,11 +220,6 @@ variable "read_replica_maintenance_window_hour" {
 variable "read_replica_maintenance_window_update_track" {
   description = "The update track of maintenance window for the read replica instances maintenance. Can be either `canary` or `stable`."
   default     = "canary"
-}
-
-variable "read_replica_ip_configuration" {
-  description = "The ip configuration for the read replica instances."
-  default     = {}
 }
 
 // Failover replica
@@ -239,6 +279,38 @@ variable "failover_replica_ip_configuration" {
   default     = {}
 }
 
+variable "failover_replica_user_labels" {
+  default     = {}
+  description = "The key/value labels for the failover replica instance."
+}
+
+variable "failover_replica_maintenance_window_day" {
+  description = "The day of week (1-7) for the failover replica instance maintenance."
+  default     = 7
+}
+
+variable "failover_replica_maintenance_window_hour" {
+  description = "The hour of day (0-23) maintenance window for the failover replica instance maintenance."
+  default     = 19
+}
+
+variable "failover_replica_maintenance_window_update_track" {
+  description = "The update track of maintenance window for the failover replica instance maintenance. Can be either `canary` or `stable`."
+  default     = "canary"
+}
+
+variable "failover_replica_disk_autoresize" {
+  description = "Configuration to increase storage size."
+  default     = true
+}
+
+variable "failover_replica_activation_policy" {
+  description = "The activation policy for the failover replica instance. Can be either `ALWAYS`, `NEVER` or `ON_DEMAND`."
+  default     = "ALWAYS"
+}
+
+
+// Database and User:
 variable "db_name" {
   description = "The name of the default database to create"
   default     = "default"
@@ -277,4 +349,20 @@ variable "user_password" {
 variable "additional_users" {
   description = "A list of users to be created in your cluster"
   default     = []
+}
+
+// Terraform vars for commands:
+variable create_timeout {
+  description = "The optional timout that is applied to limit long database creates."
+  default     = "10m"
+}
+
+variable update_timeout {
+  description = "The optional timout that is applied to limit long database updates."
+  default     = "10m"
+}
+
+variable delete_timeout {
+  description = "The optional timout that is applied to limit long database deletes."
+  default     = "10m"
 }
