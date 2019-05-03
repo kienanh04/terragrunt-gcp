@@ -1,4 +1,5 @@
 variable "project_id" {}
+variable "project_name" { default = "Prototype" }
 variable "project_env_short" { default = "prd" }
 variable "region" { default = "us-west1" }
 
