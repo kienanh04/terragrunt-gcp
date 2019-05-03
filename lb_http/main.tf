@@ -95,7 +95,7 @@ module "lb-http" {
   version           = "1.0.10"
   name              = "${var.name}-lb"
   target_tags       = ["${var.target_tags}"]
-  firewall_networks = ["${var.firewall_networks}"]
+  firewall_networks = ["${ var.firewall_networks == "default" ? "${lower(var.project_name)}-${lower(var.project_env_short)}" : "${var.firewall_networks}" }"]
   backends          = {
     "0" = "${data.null_data_source.backends.*.inputs}"
   }
