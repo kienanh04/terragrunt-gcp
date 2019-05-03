@@ -354,15 +354,15 @@ variable "additional_users" {
 // Terraform vars for commands:
 variable create_timeout {
   description = "The optional timout that is applied to limit long database creates."
-  default     = "10m"
+  default     = "30m"
 }
 
 variable update_timeout {
   description = "The optional timout that is applied to limit long database updates."
-  default     = "10m"
+  default     = "30m"
 }
 
 variable delete_timeout {
   description = "The optional timout that is applied to limit long database deletes."
-  default     = "10m"
+  default     = "30m"
 }
