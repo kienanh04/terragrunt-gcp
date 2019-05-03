@@ -42,6 +42,8 @@ locals {
     start_time         = "${var.backup_start_time}"
   }
 
+  name = "${var.name == "" ? "${lower(var.project_name)}-${lower(var.project_env_short)}" : "${var.name}" }"
+
 }
 
 resource "google_compute_global_address" "cloud_sql" {
@@ -64,7 +66,7 @@ resource "google_service_networking_connection" "private_connect" {
 resource "google_sql_database_instance" "default" {
   provider         = "google-beta"
   project          = "${var.project_id}"
-  name             = "${var.name == "" ? "${lower(var.project_name)}-${lower(var.project_env_short)}" : "${var.name}" }"
+  name             = "${local.name}"
   database_version = "${var.database_version}"
   region           = "${var.region}"
   depends_on       = ["google_service_networking_connection.private_connect"]

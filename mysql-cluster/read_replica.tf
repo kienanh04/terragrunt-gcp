@@ -17,7 +17,7 @@ locals {
 resource "google_sql_database_instance" "replicas" {
   count                 = "${var.read_replica_size}"
   project               = "${var.project_id}"
-  name                  = "${var.name}-replica${count.index}"
+  name                  = "${local.name}-replica${count.index}"
   database_version      = "${var.database_version}"
   region                = "${var.region}"
   master_instance_name  = "${google_sql_database_instance.default.name}"
