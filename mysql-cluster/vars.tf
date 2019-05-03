@@ -12,7 +12,7 @@ variable "project_env" {
   default     = "production"
 }
 
-variable "project_short_env" {
+variable "project_env_short" {
   description = "The short ENV of the Cloud SQL resources"
   default     = "prd"
 }

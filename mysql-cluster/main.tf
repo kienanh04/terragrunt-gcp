@@ -64,7 +64,7 @@ resource "google_service_networking_connection" "private_connect" {
 resource "google_sql_database_instance" "default" {
   provider         = "google-beta"
   project          = "${var.project_id}"
-  name             = "${var.name == "" ? "${lower(var.project_name)}-${lower(var.project_short_env)}" : "${var.name}" }"
+  name             = "${var.name == "" ? "${lower(var.project_name)}-${lower(var.project_env_short)}" : "${var.name}" }"
   database_version = "${var.database_version}"
   region           = "${var.region}"
   depends_on       = ["google_service_networking_connection.private_connect"]
@@ -110,7 +110,7 @@ resource "google_sql_database_instance" "default" {
 }
 
 resource "google_sql_database" "default" {
-  name       = "${var.db_name == "default" ? "${lower(var.project_name)}_${lower(var.project_short_env)}" : "${var.db_name}"}"
+  name       = "${var.db_name == "default" ? "${lower(var.project_name)}_${lower(var.project_env_short)}" : "${var.db_name}"}"
   project    = "${var.project_id}"
   instance   = "${google_sql_database_instance.default.name}"
   charset    = "${var.db_charset}"
@@ -138,7 +138,7 @@ resource "random_id" "user-password" {
 }
 
 resource "google_sql_user" "default" {
-  name       = "${var.user_name == "default" ? "${lower(var.project_short_env)}_usr" : "${var.user_name}"}"
+  name       = "${var.user_name == "default" ? "${lower(var.project_env_short)}_usr" : "${var.user_name}"}"
   project    = "${var.project_id}"
   instance   = "${google_sql_database_instance.default.name}"
   host       = "${var.user_host}"

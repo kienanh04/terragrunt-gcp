@@ -8,7 +8,7 @@ terraform {
 }
 
 locals {
-  network_name = "${lower(var.project_name)}-${lower(var.project_short_env)}"
+  network_name = "${lower(var.project_name)}-${lower(var.project_env_short)}"
 }
 
 data "google_compute_zones" "available" {}
