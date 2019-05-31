@@ -42,7 +42,7 @@ module "gce" {
 }
 
 resource "google_dns_record_set" "private" {
-  count        = "${var.instance_count}"
+  count        = "${var.dns_private ? "${var.instance_count}" : 0 }"
   name         = "${var.name}-${format("%02d", count.index + 1)}.${data.terraform_remote_state.vpc.domain_local}"
   type         = "A"
   ttl          = "${var.dns_ttl}"

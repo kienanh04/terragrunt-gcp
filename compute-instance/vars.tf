@@ -22,3 +22,4 @@ variable "ssh_pub_file" { default = "../sshkeys/id_rsa.pub" }
 variable "ssh_user" { default = "centos" }
 
 variable "dns_ttl" { default = "300" }
+variable "dns_private" { default = true }
